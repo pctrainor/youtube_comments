@@ -1,2 +1,2 @@
 # youtube_comments
-A quick webapp I made that show youtube comments in a summarized fashion.
+A quick webapp I made that shows youtube comments in a summarized fashion.
