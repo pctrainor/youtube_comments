@@ -19,6 +19,7 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 youtube_api_key = os.getenv("YOUTUBE_API_KEY")
 OUTPUT_FOLDER = "output"
 
+# Add this after your imports and before the other functions
 
 def extract_video_id(url):
     """
@@ -30,32 +31,40 @@ def extract_video_id(url):
     - youtube.com/shorts/VIDEO_ID
     
     Args:
-        url (str): YouTube URL
+        url (str): YouTube URL or video ID
         
     Returns:
         str: Video ID if found, None otherwise
     """
-    # Pattern for youtu.be and youtube.com/shorts URLs
-    short_patterns = [
-        r'youtu\.be/([a-zA-Z0-9_-]{11})',
-        r'youtube\.com/shorts/([a-zA-Z0-9_-]{11})'
-    ]
-    
-    # Check short URL patterns first
-    for pattern in short_patterns:
-        match = re.search(pattern, url)
-        if match:
-            return match.group(1)
-    
-    # Parse URL for youtube.com/watch?v= format
-    parsed_url = urlparse(url)
-    if 'youtube.com' in parsed_url.netloc:
-        query_params = parse_qs(parsed_url.query)
-        if 'v' in query_params:
-            return query_params['v'][0]
-    
-    # If no match found, return None
-    return None
+    try:
+        # Pattern for youtu.be and youtube.com/shorts URLs
+        short_patterns = [
+            r'youtu\.be/([a-zA-Z0-9_-]{11})',
+            r'youtube\.com/shorts/([a-zA-Z0-9_-]{11})'
+        ]
+        
+        # Check short URL patterns first
+        for pattern in short_patterns:
+            match = re.search(pattern, url)
+            if match:
+                return match.group(1)
+        
+        # Parse URL for youtube.com/watch?v= format
+        parsed_url = urlparse(url)
+        if 'youtube.com' in parsed_url.netloc:
+            query_params = parse_qs(parsed_url.query)
+            if 'v' in query_params:
+                return query_params['v'][0]
+        
+        # If it looks like a direct video ID, return it
+        if re.match(r'^[a-zA-Z0-9_-]{11}$', url):
+            return url
+            
+        return None
+        
+    except Exception as e:
+        print(f"Error extracting video ID: {e}")
+        return None
 
 # YouTube API client setup
 def get_youtube_client():
@@ -300,17 +309,7 @@ if __name__ == '__main__':
                       print("You may also check if the video exists and has public comments enabled.")
                       sys.exit(1) # Exit if data cannot be obtained
                   else:
-                     print("Data fetching successful. Proceeding with analysis.")
-
-             # Now that we have the data files, run the analysis
-             print(f"\nStarting analysis for video ID: {video_id}")
-             analysis_result = analyze_comments_sentiment_for_video(video_id)
-             if analysis_result:
-                 print("\nAnalysis complete.")
-                 print("\nAnalysis files saved in the 'output/sentiment_analysis' directory.")
-             else:
-                 print(f"\nAnalysis failed for video ID: {video_id}")
-
+                     print("Data fetching successful. Proceed to upload /sentiment_analysis comments to azure storage.")
         else:
              # Should not reach here if extraction check works properly
              print("Error: No valid video ID obtained.")
