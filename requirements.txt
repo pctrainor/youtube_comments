@@ -1,0 +1,8 @@
+pandas
+numpy
+nltk
+openai
+python-dotenv
+google-api-python-client
+azure-storage-blob
+azure-identity
